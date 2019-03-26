@@ -1,0 +1,35 @@
+{
+  "id": "com.nanyukiaf.legal_desk",
+  "schemaVersion": 1,
+  "version": "3",
+  "minorVersion": 12,
+  "providerName": "NanyukiAF",
+  "displayName": "My Sheria",
+  "description": "Legal Desk",
+  "icon": "law.png",
+  "appModel": "AppModel.json",
+  "dials": {
+    "isLocalised": false,
+    "isPinned": false
+  },
+  "actionScope": "Group",
+  "views": {
+    "CreationView": {
+      "sourceLocation": "Response.html",
+      "showNativeToolbar": false
+    },
+    "ChatCanvasCardView": {
+      "showReceipts": false,
+      "showLikes": false,
+      "showComments": false,
+      "labelResponseSending": "Submitting your inquiry",
+      "labelResponded": "Inquiry submitted successfully",
+      "labelResponseFailed": "Inquiry submission failed",
+      "isResponseEditable": false
+    },
+    "ResponseResultsView": {
+      "sourceLocation": "ResponseSummary.html",
+      "showNativeToolbar": false
+    }
+  }
+}

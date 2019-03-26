@@ -1,0 +1,43 @@
+{
+  "id": "com.legal.lawyershub.7",
+  "schemaVersion": 1,
+  "providerName":"legal Desk",
+  "displayName": "Case Description",
+  "icon": "announce.png",
+  "version": "7",
+  "minorVersion": "1",
+  "appModel": "AppModel.json",
+  "description": "describe a certain case type",
+  "dials": {
+    "isLocalised": true,
+    "isPinned": false,
+    "isInFocus": false
+  },
+  "views": {
+    "ChatCanvasCardView": {
+      "showExpiry": false,
+      "sourceLocation": "chatCard.json",
+      "labelRespondToForm": "View",
+      "isResponseEditable": false
+    },
+    "CreationView": {
+      "sourceLocation": "CreateAnnouncement.html",
+      "showNativeToolbar": false,
+      "backDialogVisibility": false
+    },
+    "ResponseResultsView": {
+      "sourceLocation": "AnnouncementSummary.html",
+      "showNativeToolbar": false,
+      "backDialogVisibility": false
+    },
+    "ResponseView": {
+      "sourceLocation": "AnnouncementSummary.html",
+      "showNativeToolbar": false,
+      "backDialogVisibility": false
+    },
+    "DiscoverView": {
+      "icon": "DiscoverIcon.png"
+    }
+  },
+  "parentTemplateId": "Announcement"
+}

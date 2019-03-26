@@ -1,0 +1,35 @@
+{
+  "id": "com.dynamic.appf",
+  "schemaVersion": 1,
+  "version": "2",
+  "minorVersion": 1,
+  "providerName": "NanyukiAF",
+  "displayName": "Dynamic",
+  "description": "Dynamic Form",
+  "icon": "icon-business.png",
+  "appModel": "AppModel.json",
+  "dials": {
+    "isLocalised": false,
+    "isPinned": false
+  },
+  "actionScope": "Group",
+  "views": {
+    "CreationView": {
+      "sourceLocation": "Response.html",
+      "showNativeToolbar": false
+    },
+    "ChatCanvasCardView": {
+      "showReceipts": false,
+      "showLikes": false,
+      "showComments": false,
+      "labelResponseSending": "Submitting your details",
+      "labelResponded": "Business registration complete",
+      "labelResponseFailed": "Business registration failed",
+      "isResponseEditable": false
+    },
+    "ResponseResultsView": {
+      "sourceLocation": "ResponseSummary.html",
+      "showNativeToolbar": false
+    }
+  }
+}

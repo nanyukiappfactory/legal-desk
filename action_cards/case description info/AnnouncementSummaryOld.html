@@ -1,0 +1,618 @@
+﻿<html>
+
+<head>
+	<link rel="stylesheet" href="themeKaizala.css" />
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title></title>
+	<style>
+		html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, sans-serif;
+        height: 100%;
+        width: 100%;
+        background-color: white;
+      }
+
+      b {
+        font-weight: 600;
+      }
+      /* Reassign alert box */
+
+      .bg-view {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 2;
+        display: none;
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .alert-box {
+        position: fixed;
+        top: 0%;
+        left: 0%;
+        width: 100%;
+        bottom: 0%;
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        color: rgb(50, 72, 95);
+        overflow: hidden;
+      }
+    </style>
+	<script type="text/javascript" src="./KASClient.js"></script>
+	<!-- <script type="text/javascript" src="./KASClientUI.js"></script>
+    <script type="text/javascript" src="./AnnouncementV2.js"></script> -->
+	<script>
+		// Type aliases (short names)
+		var KASFormResultVisibility = KASClient.KASFormResultVisibility;
+		var KASFormPageNavigator = KASClient.UI.KASFormPageNavigator;
+		var KASFormPage = KASClient.UI.KASFormPage;
+		var KASFormEmptyModule = KASClient.KASFormEmptyModule;
+		var KASFormDetailsModule = KASClient.UI.KASFormDetailsModule;
+		var KASFormTitleSubtitleActionModule =
+			KASClient.UI.KASFormTitleSubtitleActionModule;
+		var KASFormCountImageTitleActionModule =
+			KASClient.UI.KASFormCountImageTitleActionModule;
+		var KASFormUserTitleSubtitleActionModule =
+			KASClient.UI.KASFormUserTitleSubtitleActionModule;
+		var getString = KASClient.App.getString;
+		var printf = KASClient.App.printf;
+		var KASFormPropertyUpdateFactory = KASClient.KASFormPropertyUpdateFactory;
+
+		// Constants
+		var ANNOUNCEMENT_DESCRIPTION = "Description";
+		var ANNOUNCEMENT_LIST_OF_ATTACHMENTS = "loa";
+
+		// Globals
+		var _form = null; // type: KASForm
+		var _shouldSeeSummary; // type: boolean
+		var _pageNavigator = null; // type: KASFormPageNavigator
+		var _strings;
+		var _title = null;
+		var _description = null;
+		var _imageAttachments = [];
+		var _documentAttachments = [];
+		var _audioAttachments = [];
+		var _messageProperties = null;
+		var _isOutGoing = false;
+		var _isAutoDownloadEnabled = false;
+
+		var obstaclesFaced = "";
+		var preliminaryResults = "";
+		var correctiveAction = "";
+		var incident_id;
+		var resultsOfFullInvestigation = "";
+		var actionTaken = "";
+		var rootCauseAnalysis = "";
+		var longTermSolution = "";
+
+		var imageAttachmentsHaveAllLocalPaths = true;
+		var imageAttachmentsHaveAllServerPaths = true;
+		var _isImageDownloading = false;
+		var _isDocumentDownloading = false;
+		var _isAudioDownloading = false;
+		var _shouldShowDebugView = false;
+
+		function onPageLoad() {
+			// Global error handling
+			window.onerror = function (msg, url, line, col, error) {
+				// col & error are new to the HTML 5, so handling for them
+				var extra = !col && col !== undefined ? "" : "#column:" + col;
+				extra += !error && error !== undefined ? "" : "#error:" + error.stack;
+				var error = "Error:" + msg + "#url:" + url + "#line:" + line + extra;
+				KASClient.App.logError(error);
+       // alert(extra);
+			};
+
+			// Remove any existing pages, if any
+			if (_pageNavigator) {
+				_pageNavigator.popAllPages();
+				_pageNavigator = null;
+			}
+
+			KASClient.App.getLocalizedStringsAsync(function (strings, error) {
+				if (error != null) {
+					showAlert("Error:GetFormAsync:" + error);
+					return;
+				}
+				_strings = strings;
+				document.title = _strings["AnnouncementSummaryPageTitle"];
+				KASClient.Form.getFormAsync(function (form, error) {
+					if (error != null) {
+						return;
+					} else if (form != null) {
+						_form = form;
+            // processForm();
+            testingdivs();
+
+						KASClient.Internal.getMessagePropertiesAsync(function (
+							properties,
+							error
+						) {
+							if (error != null) {
+								handleError(error);
+								return;
+							}
+
+							if (properties != null) {
+								_shouldShowDebugView = properties.hasOwnProperty(
+									"shouldShowDebugView"
+								);
+								_messageProperties = properties;
+								processMessageProperties();
+							}
+							showSummaryPage();
+						});
+					}
+				});
+			});
+		}
+
+		function processMessageProperties() {
+			if (_messageProperties) {
+				if (_messageProperties.hasOwnProperty("isAutoDownloadEnabled")) {
+					_isAutoDownloadEnabled =
+						_messageProperties["isAutoDownloadEnabled"];
+				}
+
+				if (_messageProperties.hasOwnProperty("isOutGoing")) {
+					_isOutGoing = _messageProperties["isOutGoing"];
+				}
+
+				if (_messageProperties.hasOwnProperty("isDocumentDownloading")) {
+					_isDocumentDownloading =
+						_messageProperties["isDocumentDownloading"];
+				}
+				if (_messageProperties.hasOwnProperty("isAudioDownloading")) {
+					_isAudioDownloading = _messageProperties["isAudioDownloading"];
+				}
+				if (_messageProperties.hasOwnProperty("isImageDownloading")) {
+					_isImageDownloading = _messageProperties["isImageDownloading"];
+				}
+			}
+		}
+
+    function testingdivs()
+    {
+      //alert("entry");
+
+      var trial = document.getElementById("singleDiv");
+      let _responseStr = _form.properties[0].value;
+     //var trialheader = KASClient.UI.getElement("p");
+     // KASClient.UI.clearElement("p");
+     // trialdetails.innerHTML = "Case Title";
+      var trialdetails = KASClient.UI.getElement("p");
+      KASClient.UI.clearElement("p");
+      trialdetails.innerHTML = _responseStr;
+      //KASClient.UI.addElement(trialheader, trial);
+			KASClient.UI.addElement(trialdetails, trial);
+        
+			
+
+    }
+		function processForm() {
+			alert("hello");
+			var responseDiv = document.getElementById("itemDescription");
+      let _responseStr = _form.properties[0].value;
+      let responseObj = JSON.parse(_responseStr);
+      alert(_form.properties[0].value);
+			var divAttributes = {
+				"background-color": "white",
+				"color": "#32485f",
+				"font-size": "13.5pt",
+				"margin": "16px",
+				"margin-top": "8px",
+				"margin-bottom": "8px",
+				"box-shadow": "0px 0px 1px 0px rgba(0,0,0,0.12)",
+				"border-radius": "4px"
+			};
+
+			let detailsDiv = KASClient.UI.getElement("div", divAttributes);
+			// start of incident section
+			let textDetailsDiv = KASClient.UI.getElement("div", divAttributes);
+			let textDetailsHeader = KASClient.UI.getElement("div", {
+				"padding": "14px",
+				"padding-bottom": "0pt"
+			});
+			textDetailsHeader.className = "comment-header";
+			textDetailsHeader.innerHTML = "Case Details";
+			KASClient.UI.addElement(textDetailsHeader, textDetailsDiv);
+
+			let textDetailsView = KASClient.UI.getElement("div", {
+				"padding": "14px",
+				"padding-top": "5pt"
+			});
+			let textDetails = KASClient.UI.getElement("div", {
+				"color": "#32485f",
+				"font-size": "12pt",
+				"overflow-wrap": "break-word",
+				"word-wrap": "break-word",
+				"word-break": "break-word"
+			});
+			textDetails.innerHTML = responseObj;
+
+			KASClient.UI.addElement(textDetails, textDetailsView);
+			KASClient.UI.addElement(textDetailsView, textDetailsDiv);
+			KASClient.UI.addElement(textDetailsDiv, responseDiv);
+		}
+		// end of incident section
+
+		// function showMaps(responseDiv, lt, lng) {
+		// 	var locationViewDiv = KASClient.UI.getElement("div", {
+		// 		"border-bottom": "none"
+		// 	});
+		// 	KASClient.UI.clearElement(locationViewDiv);
+		// 	locationViewDiv.className = "section";
+		// 	// location view header
+		// 	var locationHeader = KASClient.UI.getElement("div");
+		// 	locationHeader.className = "location-title";
+		// 	locationHeader.innerText = _strings["Location"];
+
+		// 	//location map view
+		// 	var locationMapView = KASClient.UI.getElement("img");
+		// 	locationMapView.src =
+		// 		"https://maps.googleapis.com/maps/api/staticmap?zoom=18&size=360x170&maptype=roadmap&markers=color:blue%7C%7C" +
+		// 		lt +
+		// 		"," +
+		// 		lng +
+		// 		"&key=AIzaSyAMfrWKiELcjgQDzNq1n3LTVMSQAXGSs6E";
+		// 	locationMapView.className = "location-image";
+		// 	locationMapView.onerror = function (event) {
+		// 		event.target.style.display = "none";
+		// 	};
+
+		// 	// location address-refresh div
+		// 	var locationAddressRefreshDiv = KASClient.UI.getElement("div", {
+		// 		padding: "15pt",
+		// 		"padding-top": "8px",
+		// 		display: "inline-flex"
+		// 	});
+
+		// 	var locationAddressDiv = KASClient.UI.getElement("div", {
+		// 		float: "left",
+		// 		display: "flex",
+		// 		"flex-direction": "column",
+		// 		width: "100%"
+		// 	});
+
+		// 	// low network  warning text
+		// 	var locationNetworkWarning = KASClient.UI.getElement("label", {
+		// 		color: "#6f7e8f",
+		// 		"font-size": "9pt",
+		// 		display: "none"
+		// 	});
+
+		// 	// main address text
+		// 	var locationAddress = KASClient.UI.getElement("label");
+		// 	locationAddress.className = "location-address";
+
+		// 	// locationAddress.innerText = location;
+
+		// 	KASClient.UI.addElement(locationAddress, locationAddressDiv);
+		// 	KASClient.UI.addElement(locationNetworkWarning, locationAddressDiv);
+
+		// 	// refresh button
+		// 	var refreshImg = KASClient.UI.getElement("img");
+		// 	refreshImg.src = "refresh.png";
+
+		// 	// refresh label
+		// 	var refreshLabel = KASClient.UI.getElement("label", {
+		// 		"font-size": "9pt",
+		// 		color: "#006ff1",
+		// 		"font-weight": "bold"
+		// 	});
+		// 	refreshLabel.innerText = _strings["strRefreshLabel"];
+
+		// 	var refreshDiv = KASClient.UI.getElement("div", {
+		// 		float: "right",
+		// 		display: "flex",
+		// 		"flex-direction": "column",
+		// 		"text-align": "right",
+		// 		"justify-content": "flex-end",
+		// 		"margin-left": "4pt",
+		// 		"min-width": "50pt"
+		// 	});
+
+		// 	refreshDiv.addEventListener("click", function () {
+		// 		refreshLocation();
+		// 		inflateLocationView();
+		// 	});
+
+		// 	if (!_isLocationRefreshing) {
+		// 		refreshLabel.style.display = "block";
+		// 		refreshImg.style.display = "none";
+
+		// 		refreshImg.className = "refresh-img";
+		// 	} else {
+		// 		refreshLabel.style.display = "none";
+		// 		refreshImg.style.display = "block";
+
+		// 		refreshImg.className = "refresh-img-selected";
+		// 	}
+
+		// 	KASClient.UI.addElement(refreshImg, refreshDiv);
+		// 	KASClient.UI.addElement(refreshLabel, refreshDiv);
+
+		// 	KASClient.UI.addElement(locationAddressDiv, locationAddressRefreshDiv);
+		// 	KASClient.UI.addElement(refreshDiv, locationAddressRefreshDiv);
+
+		// 	KASClient.UI.addElement(locationHeader, locationViewDiv);
+		// 	KASClient.UI.addElement(locationMapView, locationViewDiv);
+		// 	KASClient.UI.addElement(locationAddressRefreshDiv, locationViewDiv);
+		// 	KASClient.UI.addElement(locationViewDiv, responseDiv);
+
+		// }
+
+		//////////////////////////////////////////
+		////////////// DEBUG SCREEN //////////////
+		//////////////////////////////////////////
+
+		function showDebugScreen() {
+			var debugPage = new KASFormPage();
+			debugPage.navigationBar.title = "Debug View";
+			debugPage.moduleContainer.backgroundColor = "white";
+
+			var titleAttributes = {};
+			titleAttributes["padding-top"] = "10pt";
+			titleAttributes["font-size"] = "15pt";
+			titleAttributes["font-weight"] = SEMIBOLD_FONT_WEIGHT;
+			titleAttributes["color"] = TEXT_PRIMARY_COLOR;
+
+			var jsonAttributes = {};
+			jsonAttributes["overflow-wrap"] = "break-word";
+			jsonAttributes["word-wrap"] = "break-word";
+			jsonAttributes["word-break"] = "break-word";
+
+			var views = [];
+
+			if (_form && _form.json) {
+				var formTitle = KASClient.UI.getLabel("FORM:", titleAttributes);
+				views.push(formTitle);
+				var form = KASClient.UI.getPrettyPrintDiv(jsonAttributes);
+				form.innerHTML = KASClient.syntaxHighlightJson(_form.json);
+				views.push(form);
+			}
+
+			var debugView = KASClient.UI.getVerticalDiv(views);
+
+			debugPage.moduleContainer.addView(debugView);
+
+			_pageNavigator.pushPage(debugPage);
+		}
+
+		//////////////////////////////////////////
+		////////////// ERROR SCREEN //////////////
+		//////////////////////////////////////////
+
+		function handleError(errorMsg) {
+			hideProgressBar();
+			showErrorScreen();
+		}
+
+		function showErrorScreen() {
+			if (_pageNavigator == null) {
+				_pageNavigator = new KASFormPageNavigator();
+				var container = document.getElementById("pageNavigator");
+				KASClient.UI.addElement(_pageNavigator.getView(), container);
+			}
+
+			var errorPage = new KASFormPage();
+			errorPage.navigationBar.iconPath = "announce.png";
+			errorPage.navigationBar.title = _strings["SummaryNavTitle"];
+			errorPage.moduleContainer.backgroundColor = "white";
+
+			var emptyModule = new KASFormEmptyModule();
+			emptyModule.title = _strings["ErrorTitle"];
+			emptyModule.subtitle = _strings["ErrorSubtitle"];
+			if (!_pageNavigator.containsPages()) {
+				emptyModule.actionTitle = _strings["ErrorActionTitle"];
+				emptyModule.action = onPageLoad;
+			}
+
+			errorPage.moduleContainer.addModule(emptyModule);
+
+			_pageNavigator.pushPage(errorPage);
+		}
+
+		////////////////////////////////////////////
+		////////////// SUMMARY SCREEN //////////////
+		////////////////////////////////////////////
+
+		var _summaryPage = null;
+		var _allResponsesModule = null;
+
+		function showSummaryPage() {
+			if (_pageNavigator == null) {
+				_pageNavigator = new KASFormPageNavigator();
+				var container = document.getElementById("pageNavigator");
+				KASClient.UI.addElement(_pageNavigator.getView(), container);
+			}
+
+			_summaryPage = new KASFormPage();
+			_summaryPage.navigationBar.titleAction = _shouldShowDebugView ?
+				showDebugScreen :
+				null;
+			_summaryPage.moduleContainer.backgroundColor = "white";
+			_summaryPage.navigationBar.iconPath = "law.png";
+
+			var titleOuterDiv = KASClient.UI.getLabel(
+				_strings["AnnouncementDetailsPageTitle"], {
+					"font-weight": "500"
+				}
+			);
+			//_summaryPage.navigationBar.title = titleOuterDiv.outerHTML;
+			_summaryPage.navigationBar.title = "case desc";
+			if (_imageAttachments != null && _imageAttachments.length > 0) {
+				var model = new KASClient.UI.KASAlbumViewModel();
+				model.hasStaticImages = false;
+				model.enableOnTap = true;
+				model.imageObjects = _imageAttachments;
+				model.isAutoDownloadEnabled = _isAutoDownloadEnabled;
+				model.isDownloading = _isImageDownloading;
+				model.allLocalPathsAvailable = imageAttachmentsHaveAllLocalPaths;
+				model.allServerPathsAvailable = imageAttachmentsHaveAllServerPaths;
+				model.thumbnailBase64 = _imageAttachments[0].thumbnail;
+				var albumViewHandler = new KASClient.UI.KASAlbumViewHandler(model);
+
+				var albumDiv = KASClient.UI.getElement("div", {
+					height: "210px"
+				});
+				KASClient.UI.addElement(albumViewHandler.getAlbumView(), albumDiv);
+
+				_summaryPage.moduleContainer.addViewWithFullWidth(albumDiv);
+			}
+
+			if (!KASClient.isEmptyString(_title)) {
+				var titleView = KASClient.UI.getLabel("", {
+					"font-weight": 500,
+					"font-size": KASClient.UI.getScaledFontSize("18px"),
+					flex: "1",
+					"user-select": "text",
+					padding: "10px"
+				});
+				KASClient.UI.setText(titleView, _title, false, true);
+
+				KASClient.UI.setAccessibilityBasic(
+					titleView,
+					false,
+					KASClient.UI.KASFormAccessibilityRole.Text,
+					_strings["AnnouncementDetailsPageTitle"] +
+					" " +
+					_strings["AnnouncementDetailsTitleHeader"] +
+					" - " +
+					_title
+				);
+				_summaryPage.moduleContainer.addView(titleView);
+			}
+
+			if (!KASClient.isEmptyString(_description)) {
+				var descriptionView = KASClient.UI.getLabel("", {
+					"font-weight": 300,
+					"font-size": KASClient.UI.getScaledFontSize("14px"),
+					flex: "1",
+					"user-select": "text",
+					padding: "10px"
+				});
+				KASClient.UI.setText(descriptionView, _description, false, true);
+
+				KASClient.UI.setAccessibilityBasic(
+					descriptionView,
+					false,
+					KASClient.UI.KASFormAccessibilityRole.Text,
+					_strings["AnnouncementDetailsPageTitle"] +
+					" " +
+					_strings["AnnouncementDetailsDescriptionHeader"] +
+					" - " +
+					_description
+				);
+				_summaryPage.moduleContainer.addView(descriptionView);
+			}
+
+			if (_documentAttachments != null && _documentAttachments.length > 0) {
+				_summaryPage.moduleContainer.addView(getDocumentView());
+			}
+
+			if (_audioAttachments != null && _audioAttachments.length > 0) {
+				_summaryPage.moduleContainer.addView(getAudioView());
+			}
+
+			_pageNavigator.pushPage(_summaryPage);
+			_summaryPage.getView().style.userSelect = "auto";
+			_summaryPage.getView().style.webkitUserSelect = "auto";
+		}
+
+		///////////// Utility sections /////////////
+
+		// function getDocumentView() {
+		// 	var viewModel = new KASClient.UI.KASDocumentViewModel();
+		// 	viewModel.enableOnTap = true;
+		// 	viewModel.documentObj = _documentAttachments[0];
+		// 	viewModel.hasStaticDocument = false;
+		// 	viewModel.isDownloading = _isDocumentDownloading;
+		// 	viewModel.isAutoDownloadEnabled = _isAutoDownloadEnabled;
+		// 	viewModel.allLocalPathsAvailable = KASClient.KASAttachment.hasLocalPath(
+		// 		_documentAttachments[0]
+		// 	);
+		// 	viewModel.allServerPathsAvailable = KASClient.KASAttachment.hasServerPath(
+		// 		_documentAttachments[0]
+		// 	);
+		// 	var documentViewHandler = new KASClient.UI.KASDocumentViewHandler(
+		// 		viewModel
+		// 	);
+
+		// 	var docWrapperView = KASClient.UI.getElement("div", {
+		// 		"padding-left": "10px",
+		// 		"padding-right": "10px",
+		// 		position: "relative"
+		// 	});
+		// 	docWrapperView.id = "docWrapper";
+		// 	var docDiv = documentViewHandler.getDocumentView();
+		// 	docDiv.style.margin = "0 0 10px 0";
+		// 	KASClient.UI.addElement(docDiv, docWrapperView);
+
+		// 	return docWrapperView;
+		// }
+
+		// function getAudioView() {
+		// 	var viewModel = new KASClient.UI.KASAudioViewModel();
+		// 	viewModel.enableOnTap = true;
+		// 	viewModel.audioObj = _audioAttachments[0];
+		// 	viewModel.hasStaticDocument = false;
+		// 	viewModel.isDownloading = _isAudioDownloading;
+		// 	viewModel.isAutoDownloadEnabled = _isAutoDownloadEnabled;
+		// 	viewModel.allLocalPathsAvailable = KASClient.KASAttachment.hasLocalPath(
+		// 		_audioAttachments[0]
+		// 	);
+		// 	viewModel.allServerPathsAvailable = KASClient.KASAttachment.hasServerPath(
+		// 		_audioAttachments[0]
+		// 	);
+		// 	var audioViewHandler = new KASClient.UI.KASAudioViewHandler(viewModel);
+
+		// 	var audioWrapperView = KASClient.UI.getElement("div", {
+		// 		"padding-left": "9px",
+		// 		"padding-right": "9px",
+		// 		position: "relative"
+		// 	});
+		// 	audioWrapperView.id = "audioWrapper";
+		// 	var audioControl = audioViewHandler.getAudioView();
+		// 	audioControl.style.margin = "0 0 10px 0";
+		// 	KASClient.UI.addElement(audioControl, audioWrapperView);
+
+		// 	return audioWrapperView;
+		// }
+
+		// function showError(errorMsg) {
+		// 	hideProgressBar();
+		// 	KASClient.App.showNativeErrorMessage(errorMsg);
+		// }
+
+		// function showProgressBar(text) {
+		// 	KASClient.App.showProgressBar(text);
+		// }
+
+		// function hideProgressBar() {
+		// 	KASClient.App.hideProgressBar();
+		// }
+
+	</script>
+</head>
+
+<body onload="onPageLoad()">
+	<div id="pageNavigator"></div>
+
+	<div>
+		<div id="singleDiv" class="body-container">
+			<div id="itemDescription" style="width: 100%; padding-top: 8px"></div>
+
+		</div>
+	</div>
+</body>
+
+</html>

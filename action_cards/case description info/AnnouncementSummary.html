@@ -1,0 +1,161 @@
+<html>
+	<head>
+		<script type="text/javascript" src="KASClient.js"></script>
+		<link rel="stylesheet" href="styles.css" />
+		<link rel="stylesheet" href="themeKaizala.css" />
+		<script type="text/javascript">
+			// Type aliases (short names)
+			var KASFormPageNavigator = KASClient.UI.KASFormPageNavigator;
+			var KASFormPage = KASClient.UI.KASFormPage;
+			var KASFormEmptyModule = KASClient.UI.KASFormEmptyModule;
+			var KASFormDetailsModule = KASClient.UI.KASFormDetailsModule;
+			var KASFormImageTitleSubtitleActionModule =
+				KASClient.UI.KASFormImageTitleSubtitleActionModule;
+			var printf = KASClient.App.printf;
+
+			// Globals
+			var _form = null; // type: KASForm
+			var _myFormResponses; // type: Array<KASFormResponse>
+			var _creatorInfo; // type: KASUser
+			var _conversationName; // type: string
+			var _currentUserId; // type: string
+			var _pageNavigator = null; // type: KASFormPageNavigator
+			var _strings = null;
+
+			var _postalCode = "";
+			var _district = "";
+			var _longAddress = "";
+			var _shortAddress = "";
+
+			//function to display header
+			function inflateHeader() {
+				var header = document.getElementById("header");
+				KASClient.UI.clearElement(header);
+
+				var navigationBar = new KASClient.UI.KASFormPageNavigationBar();
+				navigationBar.iconPath = "law.png";
+				navigationBar.backAsset = "close.png";
+				var myAttr = {
+					"background-color": "white",
+					"text-color": "black",
+					"align-items": "center"
+				};
+				navigationBar.attributes = myAttr;
+				var mainText = KASClient.UI.getElement("div", {
+					"font-size": "18px",
+					color: "#32495f",
+					"max-width": "300pt"
+				});
+				mainText.innerText = "Case Description";
+
+				navigationBar.title = mainText.outerHTML;
+
+				navigationBar.backAction = function() {
+					KASClient.App.dismissCurrentScreen();
+				};
+				KASClient.UI.addElement(navigationBar.getView(), header);
+			}
+
+			function showError(errorMsg) {
+				KASClient.App.showNativeErrorMessage(errorMsg);
+			}
+
+			function onPageLoad() {
+				KASClient.App.registerHardwareBackPressCallback(function() {
+					KASClient.App.dismissCurrentScreen();
+				});
+				// Global error handling
+
+				window.onerror = function(msg, url, line, col, error) {
+					// col & error are new to the HTML 5, so handling for them
+					var extra = !col && col !== undefined ? "" : "#column:" + col;
+					extra += !error && error !== undefined ? "" : "#error:" + error.stack;
+					var error = "Error:" + msg + "#url:" + url + "#line:" + line + extra;
+					KASClient.App.logError(error);
+				};
+
+				// Remove any existing pages, if any
+				if (_pageNavigator) {
+					_pageNavigator.popAllPages();
+					_pageNavigator = null;
+				}
+				KASClient.App.getLocalizedStringsAsync(function(strings, error) {
+					if (error != null) {
+						showAlert("Error:GetFormAsync:" + error);
+						return;
+					}
+					_strings = strings;
+					KASClient.Form.getFormAsync(function(form, error) {
+						if (error != null) {
+							handleError(error);
+							return;
+						}
+						_form = form;
+						inflateHeader();
+						inflateResponses();
+					});
+				});
+			}
+
+			function inflateResponses() {
+				document.body.style.backgroundColor = "#f2f2f2";
+
+				var summaryView = document.getElementById("details");
+				KASClient.UI.clearElement(summaryView);
+
+				var divAttributes = {
+					"background-color": "white",
+					color: "#32485f",
+					"font-size": "13.5pt",
+					margin: "16px",
+					"margin-top": "8px",
+					"margin-bottom": "8px",
+					"box-shadow": "0px 0px 1px 0px rgba(0,0,0,0.12)",
+					"border-radius": "4px"
+				};
+
+				//looping response to display search results on card
+				var jsonString = _form.properties[0].value;
+                
+				let detailsDiv = KASClient.UI.getElement("div", divAttributes);
+
+                let detailsHeader = KASClient.UI.getElement("div", {
+                    "padding": "14px",
+                    "padding-bottom": "0pt"
+                });
+
+                detailsHeader.className = "comment-header";
+                detailsHeader.innerText = "Case Description";
+                KASClient.UI.addElement(detailsHeader, detailsDiv);
+
+                let detailsView = KASClient.UI.getElement("div", {
+                    "padding": "14px",
+                    "padding-top": "5pt"
+                });
+
+                let details = KASClient.UI.getElement("div", {
+                    "color": "#32485f",
+                    "font-size": "12pt",
+                    "overflow-wrap": "break-word",
+                    "word-wrap": "break-word",
+                    "word-break": "break-word"
+                });
+                details.innerHTML = jsonString;
+                
+                KASClient.UI.addElement(details, detailsView);
+                KASClient.UI.addElement(detailsView, detailsDiv);
+                KASClient.UI.addElement(detailsDiv, summaryView);
+			}
+
+			////////////// ERROR SCREEN //////////////
+			function handleError(errorMsg) {}
+		</script>
+	</head>
+
+	<body onload="onPageLoad()">
+		<div id="header"></div>
+		<div class="section">
+			<div class="body-container"><div id="details"></div></div>
+		</div>
+	</body>
+</html>

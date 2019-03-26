@@ -1,0 +1,28 @@
+/* 1. https://fonts.google.com
+    2. https://materializecss.com/color.html
+*/
+/* @import url('https://fonts.googleapis.com/css?family=Open+Sans'); */
+@import url("https://fonts.googleapis.com/css?family=Open+Sans|ZCOOL+KuaiLe|Lobster");
+@import url("https://fonts.googleapis.com/css?family=Niramit:200,200italic,300,300italic,regular,italic,500,500italic,600,600italic,700,700italic");
+
+.modal-header {
+    padding:9px 15px;
+    border-bottom:1px solid #eee;
+    background-color: #0480be;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+     border-top-left-radius: 5px;
+     border-top-right-radius: 5px;
+ }
+.bd-placeholder-img {
+	font-size: 1.125rem;
+	text-anchor: middle;
+}
+
+@media (min-width: 768px) {
+	.bd-placeholder-img-lg {
+		font-size: 3.5rem;
+	}
+}

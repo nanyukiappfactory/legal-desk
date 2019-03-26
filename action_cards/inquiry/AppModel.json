@@ -1,0 +1,31 @@
+{
+  "title": "My Sheria",
+  "visibility": "All",
+  "expiry": 0,
+  "isAnonymous": false,
+  "isResponseAppended": true,
+  "isLocationRequested": false,
+  "questions": [{
+      "title": "Case Type ID",
+      "type": "Text",
+      "isOptional": true
+    },
+    {
+      "title": "Language",
+      "type": "Text",
+      "isOptional": true
+    },
+    {
+      "title": "Name",
+      "type": "Text"
+    },
+    {
+      "title": "Phone",
+      "type": "Text"
+    },
+    {
+      "title": "Response Time",
+      "type": "DateTime"
+    }
+  ]
+}

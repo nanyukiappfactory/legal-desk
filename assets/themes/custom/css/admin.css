@@ -1,0 +1,22 @@
+.alert{
+    position: absolute;
+    right: 0;
+}
+.navbar.navbar-inverse.navbar-fixed-top .nav-header {
+	padding-left: 0px;
+}
+.navbar.navbar-inverse.navbar-fixed-top .nav-header .logo-wrap .brand-text {
+    font-size: 0.6rem;
+}
+.center-align{
+    margin:0 auto;
+    text-align: center;
+}
+
+@media only screen 
+  and (max-device-width: 480px){
+	.btn {
+        width: 100%;
+        margin-bottom: 10px;
+	}
+}

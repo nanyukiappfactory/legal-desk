@@ -1,0 +1,250 @@
+﻿<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title></title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    <script type="text/javascript" src="./KASClient(1).js"></script>
+    <!-- <script type="text/javascript" src="./KASClientUI.js"></script>
+    <script type="text/javascript" src="./AnnouncementV2.js"></script> -->
+    <script type="text/javascript">
+        // Globals
+        var _strings = null;
+        var _customSettings = {};
+        var _form = null;
+
+        function onPageLoad() {
+            KASClient.App.getPackageCustomSettingsAsync(function (settings, error) {
+                if (error != null) {
+                    showAlert("Error:GetPackageCustomSettingsAsync:" + error);
+                    return;
+                }
+                _customSettings = settings;
+                KASClient.App.getLocalizedStringsAsync(function (strings, error) {
+                    if (error != null) {
+                        showAlert("Error:GetLocalizedStringsAsync:" + error);
+                        return;
+                    }
+                    _strings = strings;
+                    KASClient.Form.getFormAsync(function (form, error) {
+                        if (error != null) {
+                            showAlert("Error:GetFormAsync:" + error);
+                            return;
+                        }
+                        _form = form;
+                        inflateCardView();
+                    });
+                });
+            });
+        }
+
+        function getSetting(settingName, optValue) {
+            if (_customSettings && _customSettings.hasOwnProperty(settingName)) {
+                return _customSettings[settingName];
+            }
+            return optValue;
+        }
+
+        function inflateCardView() {
+            setUpHeader();
+            setUpBody();
+        }
+
+        function setUpHeader() {
+            var appIcon = KASClient.UI.getElement("img", {
+                "object-fit": "contain",
+                "height": "24px",
+                "width": "24px",
+                "margin-right": "10pt",
+            });
+            appIcon.src = KASClient.Customise.getAsset("announce.png");
+
+            var appTitle = KASClient.UI.getLabel(_strings["AnnouncementDetailsPageTitle"], {
+                "line-height": "24px",
+                "font-size": "12pt",
+                "color": "#6F7E8F",
+                "flex": "1"
+            });
+
+            var appIconTitle = KASClient.UI.getHorizontalDiv([appIcon, appTitle], {
+                "padding": "10pt"
+            });
+
+            var separatorLine = KASClient.UI.getElement("div", {
+                "margin-left": "10pt",
+                "width": "50px",
+                "height": "1px",
+                "background-color": "#ea6223"
+            });
+
+            var appIconTitleSeparator = KASClient.UI.getVerticalDiv([appIconTitle, separatorLine]);
+
+            var header = document.getElementById("header");
+            KASClient.UI.clearElement(header);
+
+            if (getSetting("showImages", true)) {
+                header.style.height = "200px";
+
+                var x = new KASClient.UI.KASAlbumViewModel();
+                x.imageLocalPaths = ["SampleCoverImage.png", "SampleCoverImage.png"];
+                x.allLocalPathsAvailable = true;
+                x.hasStaticContent = true;
+                var h = new KASClient.UI.KASAlbumViewHandler(x);
+                var album = h.getAlbumView();
+                album.style.position = "relative";
+                album.style.width = "100%";
+
+                // Hook icon-title on top of cover images
+                KASClient.UI.addCSS(appIconTitleSeparator, {
+                    "position": "fixed",
+                    "top": "0"
+                });
+
+                // White text color, if cover image is shown
+                appTitle.style.color = "#FFFFFF";
+                appTitle.style.textShadow = "1px 1px rgba(0, 0, 0, 0.5)";
+
+                KASClient.UI.addElement(album, header);
+            }
+
+            KASClient.UI.addElement(appIconTitleSeparator, header);
+        }
+
+        function getAnnouncementTitle() {
+            return _form.title;
+        }
+
+        function getAnnouncementDescription() {
+            for (var i = 0; i < _form.properties.length; i++) {
+                if (_form.properties[i].name == "Description") {
+                    return _form.properties[i].value;
+                }
+            }
+            return "";
+        }
+
+        function setUpBody() {
+            var body = document.getElementById("body");
+            KASClient.UI.clearElement(body);
+            KASClient.UI.addCSS(body, {
+                "padding": "10pt"
+            });
+
+            var announcementTitle = KASClient.UI.getLabel(getAnnouncementTitle(), {
+                "color": "#32495F",
+                "font-size": "18px",
+                "font-weight": "500",
+                "overflow": "hidden",
+                "text-overflow": "ellipsis",
+                "display": "block",
+                "display": "-webkit-box",
+                "-webkit-line-clamp": "2",
+                "-webkit-box-orient": "vertical",
+                "margin-bottom": "10px"
+            });
+
+            var announcementDesc = KASClient.UI.getLabel(getAnnouncementDescription(), {
+                "color": "#6F7E8F",
+                "font-size": "14px",
+                "overflow": "hidden",
+                "text-overflow": "ellipsis",
+                "display": "block",
+                "display": "-webkit-box",
+                "-webkit-line-clamp": "3",
+                "-webkit-box-orient": "vertical"
+            });
+
+            KASClient.UI.addElement(announcementTitle, body);
+            KASClient.UI.addElement(announcementDesc, body);
+
+            var viewMore = KASClient.UI.getLabel(_strings["viewMore"], {
+                "margin-top": "10pt",
+                "font-size": "14px",
+                "font-weight": "500",
+                "color": "#006FF1"
+            });
+
+            KASClient.UI.addElement(viewMore, body);
+
+            var showDocuments = getSetting("showDocuments", true);
+            var showAudio = getSetting("showAudio", true);
+
+            if (showDocuments || showAudio) {
+                var separator = KASClient.UI.getElement("div", {
+                    "width": "50px",
+                    "height": "1px",
+                    "background-color": "#FF9F01",
+                    "margin-top": "10pt",
+                    "margin-bottom": "10pt"
+                });
+
+                KASClient.UI.addElement(separator, body);
+            }
+
+            if (showDocuments) {
+                var pdfImg = KASClient.UI.getElement("img", {
+                    "object-fit": "contain",
+                    "height": "16px",
+                    "width": "16px",
+                    "margin-right": "10pt"
+                });
+                pdfImg.src = "document_attach.png";
+
+                var pdfName = KASClient.UI.getLabel(_strings["pdfFileName"], {
+                    "font-size": "14px",
+                    "line-height": "16px",
+                    "color": "#006FF1"
+                });
+
+                var pdfImgName = KASClient.UI.getHorizontalDiv([pdfImg, pdfName], {
+                    "justify-content": "flex-start"
+                });
+
+                KASClient.UI.addElement(pdfImgName, body);
+            }
+
+            if (showAudio) {
+                var audioImg = KASClient.UI.getElement("img", {
+                    "object-fit": "contain",
+                    "height": "16px",
+                    "width": "16px",
+                    "margin-right": "10pt"
+                });
+                audioImg.src = "audio_attach.png";
+
+                var audioName = KASClient.UI.getLabel(_strings["audioFileName"], {
+                    "font-size": "14px",
+                    "line-height": "16px",
+                    "color": "#006FF1"
+                });
+
+                var audioImgName = KASClient.UI.getHorizontalDiv([audioImg, audioName], {
+                    "margin-top": (showDocuments ? "10pt" : "0"),
+                    "justify-content": "flex-start"
+                });
+
+                KASClient.UI.addElement(audioImgName, body);
+            }
+        }
+    </script>
+</head>
+
+<body onload="onPageLoad()">
+    <div style="background: white; border-radius: 4px; overflow: hidden;">
+        <div id="header"></div>
+        <div id="body"></div>
+    </div>
+</body>
+
+</html>

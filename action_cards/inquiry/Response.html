@@ -1,0 +1,156 @@
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title></title>
+	<link rel="stylesheet" type="text/css" media="screen" href="main.css">
+    <script src="https://maps.googleapis.com/maps/api/js?v=2&key=AIzaSyDwNUGlWcScxt3OCbFLzRKygePN4qXUkC4&libraries=places"></script>
+
+    <script type="text/javascript" src="KASClient.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+    <!-- <script type="text/javascript" src="Survey.js"></script> -->
+    <!-- <script type="text/javascript" src="KASClientCore.js"></script>
+    <script type="text/javascript" src="KASClientUI.js"></script> -->
+
+</head>
+
+<body onload="getCaseTypes()">
+    <div class="wrap">
+        <div class="loading">
+            <div class="bounceball"></div>
+            <div class="text">Please Wait</div>
+        </div>
+    </div>
+    <div id="welcome" class="welcome">
+        <h1>Welcome to My Sheria</h1>
+    </div>
+    <div class="page-body" id="page-body">
+        <div class="language" id="language">
+            <div class="input-group">
+                <label>Select Your Language</label>
+            </div>
+            <div class="input-group">
+                <input type="radio" name="language_radio" id="language_radio_english" value="english">
+                <label for="language_radio_english">English</label>
+            </div>
+            <div class="input-group">
+                <input type="radio" name="language_radio" id="language_radio_kiswahili" value="kiswahili">
+                <label for="language_radio_kiswahili">Kiswahili</label>
+            </div>
+        </div>
+
+        <div id="cases">
+            <div class="input-group">
+                <label>Select Your Case Category</label>
+            </div>
+            <div class="input-group">
+                <select name="case_type" id="case_type_parent" onchange="select_child_case_type()"></select>
+            </div>
+        </div>
+
+        <div id="child_cases">
+            <div class="input-group">
+                <label>Select Your Case Type</label>
+            </div>
+            <div class="input-group">
+                <select name="case_type_child" id="case_type_child"></select>
+            </div>
+            <div class="input-group">
+                <button type="button" onclick="submitFormResponse()">Submit</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        // Type aliases (short names)
+        var printf = KASClient.App.printf;
+
+        var _form; // type: KASForm
+
+        var _lat = "";
+        var _long = "";
+        var _currentPage = 1;
+        var _isLocationRefreshing = false;
+        var _strings = null;
+        var _currentUserInfo = null;
+        var _longAddress = "";
+        var _shortAddress = "";
+        var _isLocationNotFetched = true;
+        var _currentLocation = {};
+        var selectedOptions = {};
+        var imageAttachmentList = [];
+        var gridView = "";
+        var response = "";
+        var _images = "";
+        
+        function onPageLoad() {
+            // Register for Android h/w back press event
+            KASClient.App.registerHardwareBackPressCallback(function () {
+                KASClient.App.dismissCurrentScreen();
+            });
+
+            KASClient.App.getLocalizedStringsAsync(function (strings, error) {
+                if (error != null) {
+                    showError("Error:GetFormAsync:" + error);
+                    return;
+                }
+                _strings = strings;
+                // alert(_strings);
+                KASClient.Form.getFormAsync(function (form, error) {
+                    if (error != null) {
+                        showError("Error:GetFormAsync:" + error);
+                        return;
+                    }
+                    _form = form;
+                    //loadPage(_form["questions"]);
+                    //alert(JSON.stringify(_form["questions"]));
+                    // inflateHTML();
+                    KASClient.App.getCurrentUserIdAsync(function (userId, error) {
+                        if (error != null) {
+                            handleError(error);
+                            return;
+                        }
+                        KASClient.App.getUsersDetailsAsync([userId], function (users, error) {
+                            if (error != null) {
+                                handleError(error);
+                                return;
+                            }
+                            _currentUserInfo = users[userId];
+                            _name = _currentUserInfo.originalName;
+                            _phoneNumber = _currentUserInfo.phoneNumber;
+                            // inflateDetailsView();
+                        });
+                    });
+                });
+            });
+        }
+
+        function submitFormResponse() {
+            var questionToAnswerMap = JSON.parse("{}");
+            let language = "";
+            var radios = document.getElementsByName('language_radio');
+
+            for (var i = 0, length = radios.length; i < length; i++)
+            {
+                if (radios[i].checked)
+                {
+                    // do whatever you want with the checked radio
+                    language = radios[i].value;
+                    break;
+                }
+            }
+            let case_type = document.getElementById("case_type_child").value;
+            questionToAnswerMap[0] = language;
+            questionToAnswerMap[1] = case_type;
+            var count = 2;
+            questionToAnswerMap[count] = _name;
+            count++;
+            questionToAnswerMap[count] = _phoneNumber;
+            count++;
+            questionToAnswerMap[count] = (new Date()).getTime();
+            // Finally submit the response
+            KASClient.Form.sumbitFormResponse(questionToAnswerMap, null, false, true /* showInChatCanvas */ );
+        }
+    </script>
+</body>
+
+</html>

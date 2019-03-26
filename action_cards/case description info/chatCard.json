@@ -1,0 +1,44 @@
+{
+    "schemaVersion": 1,
+    "schema": {
+        "type": "container",
+        "initialHeight": 300,
+        "layout": "vertical",
+        "children": [
+            {
+                "type": "text",
+                "paddingLeft": 10,
+                "paddingRight": 10,
+                "string": "Case Description",
+                "fontSize": 14,
+                "fontStyle": "bold",
+                "textColor": "#000000",
+                "textAlignment": "left",
+                "maxNumberOfLines": 2,
+                "marginBottom": 10
+            },
+            {
+                "type": "text",
+                "paddingLeft": 10,
+                "paddingRight": 10,
+                "string": "${Form.properties[casedescription].value}",
+                "fontSize": 12,
+                "textColor": "#808080",
+                "textAlignment": "left",
+                "maxNumberOfLines": 4,
+                "marginBottom": 0
+            },
+            {
+                "type": "text",
+                "paddingLeft": 10,
+                "paddingRight": 10,
+                "string": "${Form.properties[casename].value}",
+                "fontSize": 12,
+                "textColor": "#808080",
+                "textAlignment": "left",
+                "maxNumberOfLines": 4,
+                "marginBottom": 0
+            }
+        ]
+    }
+}
